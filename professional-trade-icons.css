@@ -1,0 +1,35 @@
+/* Compact professional trade pictograms — intentionally understated. */
+.trade .icon{
+  width:44px;
+  height:44px;
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  margin:0 0 18px;
+  font-size:0;
+  color:#173f34;
+}
+.trade .icon svg{
+  width:42px;
+  height:42px;
+  display:block;
+  fill:none !important;
+  stroke:currentColor !important;
+  stroke-width:1.65;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  vector-effect:non-scaling-stroke;
+}
+.trade:hover .icon{color:#245f4e}
+.trade-grid.compact .trade{
+  min-height:168px;
+  padding:24px 26px;
+}
+.trade-grid.compact .trade .icon{
+  width:40px;
+  height:40px;
+  margin-bottom:16px;
+}
+.trade-grid.compact .trade .icon svg{width:38px;height:38px}
+.trade-grid.compact .trade b{margin-top:0}
+@media(max-width:900px){.trade .icon{width:40px;height:40px}.trade .icon svg{width:38px;height:38px}}
