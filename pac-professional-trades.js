@@ -1,15 +1,14 @@
-/* PAC template based on Ström Soumission N°1143 + professional trade icon system. */
+/* PAC template based on Ström Soumission N°1143 + restrained professional trade icon system. */
 (() => {
   const icons = {
-    ferblanterie: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M9 34V17l15-7 15 7v17"/><path d="M15 34V21l9-4 9 4v13"/><path d="M8 38h32"/><path d="M35 12v10"/></svg>',
-    charpenterie: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M7 36 24 10l17 26"/><path d="M12 29h24"/><path d="M17 21h14"/><path d="M15 36V26m18 10V26"/></svg>',
-    couverture: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M6 29 24 11l18 18"/><path d="M11 29h26"/><path d="M14 29v9h20v-9"/><path d="m17 22 7-7 7 7"/></svg>',
-    echafaudage: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M10 8v32M38 8v32M10 15h28M10 25h28M10 35h28"/><path d="m10 15 28 10M38 15 10 25M10 25l28 10M38 25 10 35"/></svg>',
-    solaire: '<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="34" cy="12" r="5"/><path d="M34 3v3m0 12v3m9-9h-3m-12 0h-3m15.4-6.4-2.1 2.1m-8.6 8.6-2.1 2.1m12.8 0-2.1-2.1M29.7 7.7l-2.1-2.1"/><path d="M7 22h27l5 17H12L7 22Z"/><path d="M10 28h26M12 34h25M17 22l2 17M26 22l1 17"/></svg>',
-    pac: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="9" y="8" width="30" height="32" rx="4"/><circle cx="24" cy="24" r="8"/><path d="M24 16c3 3 3 5 0 8-3-1-5-3-5-5m5 5c-3 3-5 3-8 0 1-3 3-5 5-5m3 5c3-3 5-3 8 0-1 3-3 5-5 5"/><path d="M15 13h8M33 13h1M15 35h18"/></svg>'
+    ferblanterie: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M9 13h28v6H21v18h-8V19H9z"/><path d="M21 19h12v5H21"/></svg>',
+    charpenterie: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 35V23L24 9l16 14v12"/><path d="M13 35V25l11-10 11 10v10"/><path d="M24 15v20"/></svg>',
+    couverture: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M9 33 14 14h23l4 19z"/><path d="M13 20h25M12 26h27"/><path d="M20 14l-3 19M28 14l-1 19M35 14l2 19"/></svg>',
+    echafaudage: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M11 7v34M37 7v34M11 14h26M11 26h26M11 38h26"/><path d="m12 15 24 10M36 15 12 25M12 27l24 10M36 27 12 37"/></svg>',
+    solaire: '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 15h30l4 22H12z"/><path d="M10 22h29M11 29h30M18 15l-2 22M27 15v22M35 15l3 22"/><path d="M15 41h24"/></svg>',
+    pac: '<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="8" y="8" width="32" height="32" rx="3"/><circle cx="23" cy="25" r="8"/><path d="M23 17c3 2 4 5 1 8-3 0-5-2-6-5m6 5c-2 3-5 4-8 1 0-3 2-5 5-6m3 5c2-3 5-4 8-1 0 3-2 5-5 6"/><path d="M33 14h2M33 18h2M12 36h24"/></svg>'
   };
 
-  // Replace emoji-like symbols with restrained line icons.
   Object.keys(icons).forEach(key => { if (trades[key]) trades[key].icon = icons[key]; });
 
   trades.pac = {
@@ -60,7 +59,6 @@
     ]
   };
 
-  // Units from the structure of Soumission 1143; quantities remain deliberately blank/project-specific.
   const previousDefaultUnit = defaultUnit;
   defaultUnit = function(label) {
     const s = String(label || '').toLowerCase();
@@ -87,7 +85,6 @@
     return d;
   }
 
-  // Existing external buttons were created by app.js before this extension loaded: refresh their icons.
   const externalButtons = [...document.querySelectorAll('#tradeGrid .trade')];
   const originalKeys = ['ferblanterie', 'solaire', 'charpenterie', 'couverture', 'echafaudage'];
   externalButtons.forEach((btn, i) => {
