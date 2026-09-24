@@ -86,10 +86,10 @@
   }
 
   const externalButtons = [...document.querySelectorAll('#tradeGrid .trade')];
-  const originalKeys = ['ferblanterie', 'solaire', 'charpenterie', 'couverture', 'echafaudage'];
-  externalButtons.forEach((btn, i) => {
-    const key = originalKeys[i];
-    if (!key || !trades[key]) return;
+  externalButtons.forEach(btn => {
+    const name = (btn.querySelector('b')?.textContent || '').trim();
+    const key = Object.keys(trades).find(k => trades[k]?.name === name);
+    if (!key) return;
     btn.dataset.tradeKey = key;
     const icon = btn.querySelector('.icon');
     if (icon) icon.innerHTML = trades[key].icon;
