@@ -1,10 +1,8 @@
-/* Keep Couverture prestations inside Charpenterie, but remove Couverture as a standalone trade. */
+/* Remove only the obsolete standalone Couverture trade. Keep Isolation et sous-couverture. */
 (() => {
   delete trades.couverture;
 
-  // app.js may already have rendered trade cards before this extension loads.
   document.querySelectorAll('#tradeGrid .trade, #stromTradeGrid .trade').forEach(card => {
-    const text = (card.textContent || '').toLowerCase();
-    if (card.dataset.tradeKey === 'couverture' || text.includes('couverture')) card.remove();
+    if (card.dataset.tradeKey === 'couverture') card.remove();
   });
 })();
