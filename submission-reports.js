@@ -80,9 +80,49 @@
       const tags=ts.map(t=>'<span class="submission-tag">✓ '+esc(t.name)+'</span>').join('');
       const date=d.updatedAt?new Date(d.updatedAt).toLocaleDateString('fr-CH'):'';
       return '<article class="submission-card"><div><h3>'+esc(d.company?.name||'Entreprise')+'</h3><div class="submission-meta">'+ts.length+' poste(s) remis · mise à jour '+esc(date)+'</div><div class="submission-tags">'+tags+'</div></div><div class="submission-total"><small>Total HT renseigné</small><strong>'+fmt(dossierTotal(d))+'</strong><div class="submission-actions"><button class="secondary view-submission" data-id="'+esc(d.id)+'">Voir l’offre</button><button class="primary pdf-submission" data-id="'+esc(d.id)+'">PDF</button></div></div></article>'
-    }).join('');
+    }).join('')+(ds.length>1?'<div class="comparison-launch"><div><span class="eyebrow">ANALYSE DES OFFRES</span><h3>Comparer les entreprises</h3><p>Compare automatiquement uniquement les postes remis en commun.</p></div><button class="primary" id="compareSubmissions">Ouvrir le comparatif →</button></div>':'');
     box.querySelectorAll('.view-submission').forEach(b=>b.onclick=()=>openReport(b.dataset.id,false));
     box.querySelectorAll('.pdf-submission').forEach(b=>b.onclick=()=>openReport(b.dataset.id,true));
+    const compare=box.querySelector('#compareSubmissions');if(compare)compare.onclick=openComparison;
+  }
+
+  function pctGap(a,b){
+    a=Number(a)||0;b=Number(b)||0;
+    if(!a&&!b)return '0,0 %';
+    const base=Math.min(a,b);if(!base)return '—';
+    return new Intl.NumberFormat('fr-CH',{minimumFractionDigits:1,maximumFractionDigits:1}).format(Math.abs(a-b)/base*100)+' %';
+  }
+  function commonTradeKeys(ds){
+    if(ds.length<2)return[];
+    const count={};ds.forEach(d=>Object.keys(d.trades||{}).forEach(k=>count[k]=(count[k]||0)+1));
+    return Object.keys(count).filter(k=>count[k]>=2);
+  }
+  function openComparison(){
+    const ds=projectDossiers(),keys=commonTradeKeys(ds);
+    const m=ensureModal(),paper=m.querySelector('#reportPaper');
+    if(!keys.length){
+      paper.innerHTML='<div class="report-brand">STRÖM</div><div class="report-kicker">COMPARATIF DES SOUMISSIONS</div><h1 class="report-title">'+esc(currentProject.address)+'</h1><div class="empty-state">Aucun poste n’a encore été remis par au moins deux entreprises. Le comparatif apparaîtra dès qu’un même poste aura été chiffré par plusieurs sociétés.</div>';
+      m.classList.add('open');return;
+    }
+    const sections=keys.map((key,idx)=>{
+      const participants=ds.filter(d=>d.trades?.[key]);
+      const labels=[...new Set(participants.flatMap(d=>(d.trades[key].rows||[]).map(r=>r.label)))];
+      const heads=participants.map(d=>'<th colspan="2">'+esc(d.company?.name||'Entreprise')+'</th>').join('');
+      const subheads=participants.map(()=>'<th>PU</th><th>Total</th>').join('');
+      const rows=labels.map(label=>{
+        const vals=participants.map(d=>(d.trades[key].rows||[]).find(r=>r.label===label));
+        const prices=vals.filter(Boolean).map(r=>Number(r.unitPrice)||0);
+        const gap=prices.length>=2?pctGap(Math.min(...prices),Math.max(...prices)):'—';
+        const first=vals.find(Boolean);
+        return '<tr><td>'+esc(label)+'</td><td>'+esc(first?.qty??'—')+' '+esc(first?.unit??'')+'</td>'+vals.map(r=>'<td>'+(r?fmt(r.unitPrice):'—')+'</td><td>'+(r?fmt(r.total):'—')+'</td>').join('')+'<td class="gap-cell">'+gap+'</td></tr>'
+      }).join('');
+      const totals=participants.map(d=>tradeTotal(d.trades[key]));
+      const totalGap=totals.length>=2?pctGap(Math.min(...totals),Math.max(...totals)):'—';
+      return '<section class="report-section comparison-section"><div class="report-section-head"><b>'+String(idx+1).padStart(2,'0')+' · '+esc(participants[0].trades[key].name).toUpperCase()+'</b><span>'+participants.length+' entreprises comparées</span></div><div class="comparison-scroll"><table class="report-table comparison-table"><thead><tr><th rowspan="2">Désignation</th><th rowspan="2">Quantité</th>'+heads+'<th rowspan="2">Écart PU</th></tr><tr>'+subheads+'</tr></thead><tbody>'+rows+'<tr class="comparison-total-row"><td colspan="2"><b>TOTAL DU POSTE</b></td>'+participants.map((d,i)=>'<td colspan="2"><b>'+fmt(totals[i])+'</b></td>').join('')+'<td><b>'+totalGap+'</b></td></tr></tbody></table></div></section>'
+    }).join('');
+    const companyNames=ds.map(d=>esc(d.company?.name||'Entreprise')).join(' · ');
+    paper.innerHTML='<div class="report-brand">STRÖM</div><div class="report-kicker">COMPARATIF DES SOUMISSIONS</div><h1 class="report-title">'+esc(currentProject.address)+'</h1><div class="report-address">'+companyNames+'</div><div class="comparison-summary"><strong>'+keys.length+'</strong><span>poste(s) en commun comparé(s)</span></div>'+sections+'<div class="report-footer"><span>STRÖM · Analyse comparative des offres</span><span>'+esc(currentProject.address)+'</span></div>';
+    m.classList.add('open');
   }
 
   function ensureModal(){
