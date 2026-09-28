@@ -25,7 +25,84 @@ function roofMetrics(analysis){const roofs=analysis.roofs||[],areas=roofs.map(r=
 function serializeRoofs(roofs){return roofs.map((r,i)=>({index:i,area:Math.round((num(attr(r.attributes,['FLAECHE','area','roof_area']))||0)*10)/10,orientation:num(attr(r.attributes,['AUSRICHTUNG','orientation'])),slope:num(attr(r.attributes,['NEIGUNG','slope'])),points:ring(r.geometry)||[]}))}
 function ferblanterieGeometryLines(p){const roofs=(p?.roofGeometry||[]).filter(r=>r.points?.length>=3),map=new Map(),key=(a,b)=>{const f=x=>x.map(v=>Math.round(v*20)/20).join(',');const A=f(a),B=f(b);return A<B?A+'|'+B:B+'|'+A};roofs.forEach(r=>{let pts=r.points;if(pts.length>3&&Math.hypot(pts[0][0]-pts.at(-1)[0],pts[0][1]-pts.at(-1)[1])<.05)pts=pts.slice(0,-1);for(let i=0;i<pts.length;i++){const a=pts[i],b=pts[(i+1)%pts.length],k=key(a,b),v=map.get(k)||{a,b,pans:[]};v.pans.push(r);map.set(k,v)}});const shared=[...map.values()].filter(x=>x.pans.length>1),out=[];for(const v of map.values()){const L=Math.hypot(v.b[0]-v.a[0],v.b[1]-v.a[1]);if(L<.2)continue;let type='rive';if(v.pans.length>1)type='faitage';else{const ridge=shared.find(x=>x.pans.some(p=>v.pans.some(q=>q.index===p.index)));if(ridge){const rx=ridge.b[0]-ridge.a[0],ry=ridge.b[1]-ridge.a[1],ex=v.b[0]-v.a[0],ey=v.b[1]-v.a[1],cos=Math.abs((rx*ex+ry*ey)/((Math.hypot(rx,ry)||1)*(L||1)));type=cos>=.866?'egout':'rive'}else type='egout'}out.push({a:v.a,b:v.b,type,active:true})}return out}
 function ferblanterieTakeoffFallback(p){const rc=p?.roofCheck||{},saved=(rc.roofLines||[]).filter(x=>x.active!==false),lines=saved.length?saved:ferblanterieGeometryLines(p),len=t=>Math.round(lines.filter(x=>x.type===t).reduce((s,x)=>s+Math.hypot(x.b[0]-x.a[0],x.b[1]-x.a[1]),0)*100)/100,eg=lines.filter(x=>x.type==='egout'),fa=lines.filter(x=>x.type==='faitage'),E=len('egout'),R=len('rive'),F=len('faitage'),n=E?Math.max(1,Math.ceil(E/12)):0,h=Math.round(((Number(p?.buildingInfo?.storeys)||2)*3+1.2)*10)/10,total=Math.round(n*h*10)/10,obs=(rc.obstacles||[]).reduce((a,o)=>{let k=o.type;if(k==='velux'&&Math.abs((o.w||0)-1.14)<.03&&Math.abs((o.h||0)-1.18)<.03)k='velux114118';if(k==='velux'&&Math.abs((o.w||0)-.55)<.03&&Math.abs((o.h||0)-.78)<.03)k='velux5578';a[k]=(a[k]||0)+1;return a},{});return{egouts:E,chenaux:E,egoutCount:eg.length,egoutLengths:eg.map(x=>Math.round(Math.hypot(x.b[0]-x.a[0],x.b[1]-x.a[1])*100)/100),faitages:F,rives:R,crochets:eg.reduce((s,x)=>s+Math.ceil(Math.hypot(x.b[0]-x.a[0],x.b[1]-x.a[1])/.5),0),naissances:n,fondsChenaux:eg.length*2,tablettesChenaux:E,dilatationsMathys:eg.length*2+eg.reduce((s,x)=>s+Math.floor(Math.hypot(x.b[0]-x.a[0],x.b[1]-x.a[1])/12),0),tetesPanne:(p?.roofGeometry||[]).length*4+2,couloirSimple:Math.round(R*1.1*10)/10,vireventDouble:Math.round(R*1.1*10)/10,larmierDouble:E,plusValueFerblage:eg.length*2,anglesFaitiere:fa.length*2,longueurDescente:h,longueurDescentesTotal:total,fixationsDescentes:Math.ceil(total/2.5),coudes:2*n,dauphinsCollerettes:n,obstacles:obs}}
-function applyAutoFerblanterie(rows,m,roofCheck){if(!m||!m.area)return rows;const project=currentProject||{},fallback=ferblanterieTakeoffFallback(project),t={...fallback,...(roofCheck?.takeoff||{})},obs=t.obstacles||fallback.obstacles||{},round=n=>Math.round((Number(n)||0)*100)/100,specs=[['Ligne d’égout / chéneau',t.chenaux,'m','Somme des lignes d’égout'],['Crochets de chéneau',t.crochets,'pce','Longueur chéneaux ÷ 0,50 m'],['Naissances de descente',t.naissances,'pce','Selon longueur des lignes d’égout'],['Fonds de chéneau',t.fondsChenaux,'pce','2 par ligne d’égout'],['Tablette perforée de chéneau',t.tablettesChenaux,'m','Même longueur que les chéneaux'],['Dilatation de chéneau',t.dilatationsMathys,'pce','1 par tranche de 12 m'],['Couloir simple',t.couloirSimple,'m','Longueur rives + 10 %'],['Vire-vent double',t.vireventDouble,'m','Longueur rives + 10 %'],['Larmier double',t.larmierDouble,'m','Même longueur que les chéneaux'],['Plus-value ferblage',t.plusValueFerblage,'pce','Extrémités des lignes d’égout'],['Faîtière',t.faitages,'m','Somme des lignes de faîtage'],['Plus-value angles / pointes diamant',t.anglesFaitiere,'pce','2 par faîtière'],['Garniture Velux 114 × 118 cm',obs.velux114118||0,'pce','Obstacles validés'],['Garniture Velux 55 × 78 cm',obs.velux5578||0,'pce','Obstacles validés'],['Garniture de ventilation',obs.ventilation||0,'pce','Obstacles validés'],['Garniture cheminée carrée',obs.chemineeCarree||obs.cheminee||0,'pce','Obstacles validés'],['Garniture cheminée ronde',obs.chemineeRonde||0,'pce','Obstacles validés'],['Tuyau de descente',t.longueurDescentesTotal,'m','Nombre de descentes × hauteur bâtiment'],['Fixations de descente',t.fixationsDescentes,'pce','Longueur descentes ÷ 2,5 m'],['Coude',t.coudes,'pce','2 par descente'],['Dauphin + collerette',t.dauphinsCollerettes,'pce','1 par descente'],['Tête de panne / blindage',t.tetesPanne??'','pce','À confirmer selon règle chantier']];return specs.map(([label,qty,unit,source])=>({section:'Ferblanterie',label,qty:qty===''?'':String(round(qty)),unit,auto:qty!=='',autoSource:source}))}
+function ferblanteriePivotMetrics(project,t){
+ const disabled=new Set(project?.roofCheck?.disabledPans||[]),roofs=(project?.roofGeometry||[]).filter(r=>!disabled.has(r.index)),P=Number(t.chenaux)||0;
+ const Ssol=Math.round(roofs.reduce((s,r)=>{const a=Number(r.area)||0,sl=Number(r.slope);return s+a*(Number.isFinite(sl)?Math.cos(sl*Math.PI/180):1)},0)*100)/100;
+ const orientations=new Set(roofs.filter(r=>(Number(r.slope)||0)>10&&Number.isFinite(Number(r.orientation))).map(r=>((Math.round(Number(r.orientation)/45)*45)%360+360)%360));
+ const nOri=orientations.size,minGeo=nOri<=1?1:nOri===2?2:nOri>=4?4:Math.max(2,nOri);
+ const H=Number(t.longueurDescente)||Math.round(((Number(project?.buildingInfo?.storeys)||2)*3+1.2)*10)/10;
+ let nTech=Math.ceil((Ssol*.03)/5.1);if(nOri===2&&nTech>2&&nTech%2)nTech++;
+ const N=Math.max(nTech,minGeo,P?1:0);
+ const eg=(project?.roofCheck?.roofLines||[]).filter(x=>x.active!==false&&x.type==='egout'),pts=[];
+ eg.forEach(e=>{pts.push(e.a,e.b)});const uniq=[];pts.forEach(p=>{if(!uniq.some(q=>Math.hypot(q[0]-p[0],q[1]-p[1])<.15))uniq.push(p)});
+ let A=0;uniq.forEach(p=>{const attached=eg.filter(e=>Math.hypot(e.a[0]-p[0],e.a[1]-p[1])<.15||Math.hypot(e.b[0]-p[0],e.b[1]-p[1])<.15);if(attached.length>=2)A++});
+ if(!A)A=nOri>=4?4:nOri===2?0:Math.max(0,Number(t.egoutCount)||0);
+ return{P,Ssol,Nangles:A,Hdescente:H,Ndescentes:N,minGeo,debitPluie:Math.round(Ssol*.03*100)/100,typeToit:nOri>=4?'4 pans':nOri===2?'2 pans':nOri<=1?'1 pan / plat':'complexe'}
+}
+function applyAutoFerblanterie(rows,m,roofCheck){
+ if(!m||!m.area)return rows;
+ const project=currentProject||{},fallback=ferblanterieTakeoffFallback(project),t={...fallback,...(roofCheck?.takeoff||{})},obs=t.obstacles||fallback.obstacles||{},x=ferblanteriePivotMetrics(project,t),round=n=>Math.round((Number(n)||0)*100)/100;
+ const P=x.P,N=x.Ndescentes,A=x.Nangles,H=x.Hdescente,F=Number(t.faitages)||0,Nv=(obs.velux5578||0)+(obs.velux114118||0)+(obs.velux||0),Nvent=obs.ventilation||0,colliers=N*Math.ceil(H/2.5),jointsP=Math.round(P/5),fondsF=x.typeToit==='4 pans'?4:x.typeToit==='2 pans'?2:'';
+ const specs=[
+ ['212.513 — Naissance droite à suspendre DN 100',N,'pce','Ndescentes'],
+ ['212.900 — Dilatation dans la naissance à suspendre',N,'pce','Ndescentes'],
+ ['214.562 — Crapaudine pour naissance DN 100',N,'pce','Ndescentes'],
+ ['251.141 — Descente provisoire / gargouille',N,'pce','Ndescentes'],
+ ['252.152 — Contre-coude DN 100',N,'pce','Ndescentes'],
+ ['252.312 — Raccordement à dauphin / coulisseau avec collerette',N,'pce','Ndescentes'],
+ ['261.112 — Dauphin PE brun DN 100',N,'m','Ndescentes × 1 m'],
+ ['251.112 — Tuyau rond DN 100',N*H,'m','Ndescentes × Hdescente'],
+ ['251.222 — Colliers de fixation de tuyau DN 100',colliers,'pce','Ndescentes × CEIL(Hdescente ÷ 2,5)'],
+ ['251.322 — Boudins amortisseurs sur colliers',colliers,'pce','Même quantité que 251.222'],
+ ['266.222 — Colliers de fixation pour dauphins',N*2,'pce','Ndescentes × 2'],
+ ['211.113 — Chéneaux mi-ronds, développement 330 mm',P*1.05,'m','P × 1,05'],
+ ['311.113 — Bavette de sous-couverture, dev. 250 mm',P,'m','P'],
+ ['311.122 — Bavette supérieure perforée, dev. 250 mm',P,'m','P'],
+ ['311.212 — Brides acier zingué, dev. 200 mm',P,'m','P'],
+ ['335.112 — Revêtements de larmiers, dev. 250 mm',P,'m','P'],
+ ['335.113 — Revêtements de larmiers, dev. 330 mm',P,'m','P'],
+ ['212.223 — Équerre de chéneau',A,'pce','Nangles'],
+ ['312.313 — Angle pour bavette, dev. 250 mm',A,'pce','Nangles'],
+ ['312.312 — Angle pour brides, dev. 200 mm',A,'pce','Nangles'],
+ ['336.322 — Angle pour larmier, dev. 250 mm',A,'pce','Nangles'],
+ ['336.323 — Angle pour larmier, dev. 330 mm',A,'pce','Nangles'],
+ ['211.413 — Crochets de chéneau cloués',Math.ceil(P/.58)+(2*A),'pce','CEIL(P ÷ 0,58) + 2 × Nangles'],
+ ['211.481 — Supplément crochets engravage bois',Math.ceil(P/.58)+(2*A),'pce','Même quantité que 211.413'],
+ ['212.312 — Dispositifs de dilatation en caoutchouc',Math.ceil(P/6.5),'pce','CEIL(P ÷ 6,5)'],
+ ['336.412 — Joints à glissière larmier, dev. 250 mm',jointsP,'pce','ROUND(P ÷ 5)'],
+ ['336.413 — Joints à glissière larmier, dev. 330 mm',jointsP,'pce','ROUND(P ÷ 5)'],
+ ['361.117 — Faîtage et arrêtiers, dev. 670 mm',F,'m','F'],
+ ['351.213 — Bandes d’accrochage faîtage, dev. 500 mm',F,'m','F'],
+ ['362.900 — Grille de ventilation faîtage',F*2,'m','F × 2'],
+ ['362.327 — Fonds droits de faîtage, dev. 670 mm',fondsF,'pce','4 pour 4 pans · 2 pour 2 pans'],
+ ['362.415 — Joints à glissière faîtage, dev. 670 mm',Math.ceil(F/2.8),'pce','CEIL(F ÷ 2,8)'],
+ ['362.900 — Raccord étanche à l’épi',2,'pce','Quantité fixe 2'],
+ ['351.113 — Tablettes champ photovoltaïque, dev. 330 mm','','m','T — périphérie basse et latérale du champ PV'],
+ ['351.213 — Bandes d’accrochage champ PV, dev. 250 mm','','m','T — périphérie basse et latérale du champ PV'],
+ ['352.323 — Fonds droits pour tablettes, dev. 330 mm',8,'pce','Quantité fixe 8'],
+ ['352.413 — Joints à glissière pour tablettes, dev. 330 mm','','pce','ROUND(T ÷ 8,5)'],
+ ['100.101 — Fourniture et pose fenêtre de toiture Velux GXU FK06',Nv,'pce','Nvelux'],
+ ['100.104 — Tôle de raccord ZWC',Nv,'pce','Nvelux'],
+ ['100.107 — Cadre d’isolation BDX 2000',Nv,'pce','Nvelux'],
+ ['383.115 — Garniture sur mesure pour fenêtre de toit',Nv,'pce','Nvelux'],
+ ['382.515 — Terminaison pour garniture carrée / raccord étanche',Nv,'pce','Nvelux'],
+ ['381.113 — Garniture ronde Ø ≤ 125 mm',Nvent,'pce','Nventilations'],
+ ['381.332 — Chapeau de nonne + collerette Ø 100 mm',Nvent,'pce','Nventilations'],
+ ['381.900 — Chapeau biconique + collerette Ø 100 mm',0,'pce','Optionnel · quantité 0'],
+ ['382.115 — Garniture carrée h ≤ 200 mm',0,'pce','Optionnel · quantité 0'],
+ ['266.900 — Traçage des renforts pour isolation périphérique',1,'bloc','Forfait chantier'],
+ ['Fonds de chéneau',t.fondsChenaux,'pce','2 par ligne d’égout'],
+ ['Tablette perforée de chéneau',t.tablettesChenaux,'m','Même longueur que les chéneaux'],
+ ['Couloir simple',t.couloirSimple,'m','Longueur rives + 10 %'],
+ ['Vire-vent double',t.vireventDouble,'m','Longueur rives + 10 %'],
+ ['Plus-value ferblage',t.plusValueFerblage,'pce','Extrémités des lignes d’égout'],
+ ['Garniture Velux 114 × 118 cm',obs.velux114118||0,'pce','Obstacle spécifique existant'],
+ ['Garniture Velux 55 × 78 cm',obs.velux5578||0,'pce','Obstacle spécifique existant'],
+ ['Garniture cheminée carrée',obs.chemineeCarree||obs.cheminee||0,'pce','Obstacles validés'],
+ ['Tête de panne / blindage',t.tetesPanne??'','pce','Selon règle chantier']
+ ];
+ return specs.map(([label,qty,unit,source])=>({section:'Ferblanterie',label,qty:qty===''?'':String(round(qty)),unit,auto:qty!=='',autoSource:source}))
+}
 function roofTradeBase(p){const t=ferblanterieTakeoffFallback(p),disabled=new Set(p?.roofCheck?.disabledPans||[]),area=Math.round((p?.roofGeometry||[]).filter(r=>!disabled.has(r.index)).reduce((s,r)=>s+(Number(r.area)||0),0)*100)/100,obs=t.obstacles||{},velux=(obs.velux5578||0)+(obs.velux114118||0)+(obs.velux||0),cheminees=(obs.chemineeCarree||0)+(obs.chemineeRonde||0)+(obs.cheminee||0),ventilation=obs.ventilation||0,velux5578=obs.velux5578||0,velux114118=obs.velux114118||0;return{...t,area:area||Number(p?.roofMetrics?.area)||0,perimetre:Number(p?.roofMetrics?.exterior)||0,velux,velux5578,velux114118,cheminees,ventilation}}
 function autoRows(section,specs){const round=n=>Math.round((Number(n)||0)*100)/100;return specs.map(([label,qty,unit])=>({section,label,qty:qty===''?'':String(round(qty)),unit,auto:true,autoSource:''}))}
 function applyAutoIsolation(){const t=roofTradeBase(currentProject);return autoRows('Isolation et sous-couverture',[
