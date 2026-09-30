@@ -5,3 +5,7 @@
 .pro-roof-line{stroke-width:5;cursor:pointer;vector-effect:non-scaling-stroke}.pro-roof-line.egout{stroke:#1689e8}.pro-roof-line.faitage{stroke:#e33b3b}.pro-roof-line.rive{stroke:#f2a51a}.pro-roof-line.noue{stroke:#8b5cf6}.pro-roof-line.off{opacity:.14;stroke-dasharray:8 7}
 .pro-line-legend{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin:7px 0;font-size:12px}.pro-line-legend span:before{content:"";display:inline-block;width:14px;height:4px;margin-right:5px;vertical-align:middle}.pro-line-legend .egout:before{background:#1689e8}.pro-line-legend .faitage:before{background:#e33b3b}.pro-line-legend .rive:before{background:#f2a51a}.pro-line-legend .noue:before{background:#8b5cf6}.pro-line-actions{display:flex;flex-wrap:wrap;gap:4px}
 .roof-obstacle.pro-obstacle{fill:#ff6b57!important;fill-opacity:.48!important;stroke:#b22f20!important;stroke-width:3!important}
+
+/* Keep the interactive roof map clipped inside its card while panning/zooming. */
+.roof-canvas-card{overflow:hidden;position:relative}
+#roofSvg{max-width:100%;overflow:hidden}
