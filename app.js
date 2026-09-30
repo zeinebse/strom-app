@@ -42,7 +42,14 @@ function ferblanteriePivotMetrics(project,t){
 function applyAutoFerblanterie(rows,m,roofCheck){
  if(!m||!m.area)return rows;
  const project=currentProject||{},fallback=ferblanterieTakeoffFallback(project),t={...fallback,...(roofCheck?.takeoff||{})},obs=t.obstacles||fallback.obstacles||{},x=ferblanteriePivotMetrics(project,t),round=n=>Math.round((Number(n)||0)*100)/100;
- const P=x.P,N=x.Ndescentes,A=x.Nangles,H=x.Hdescente,F=Number(t.faitages)||0,Nv=(obs.velux5578||0)+(obs.velux114118||0)+(obs.velux||0),Nvent=obs.ventilation||0,colliers=N*Math.ceil(H/2.5),jointsP=Math.round(P/5),fondsF=x.typeToit==='4 pans'?4:x.typeToit==='2 pans'?2:'';
+ const P=x.P,N=x.Ndescentes,A=x.Nangles,H=x.Hdescente;
+ // F = faîtage + arêtiers. On le recalcule directement depuis les arêtes partagées
+ // des pans Sonnendach afin de ne pas dépendre du libellé manuel "faitage".
+ const activeRoofs=(project?.roofGeometry||[]).filter(r=>!(project?.roofCheck?.disabledPans||[]).includes(r.index));
+ const sharedMap=new Map(),edgeKey=(a,b)=>{const f=p=>p.map(v=>Math.round(v*20)/20).join(',');const A=f(a),B=f(b);return A<B?A+'|'+B:B+'|'+A};
+ activeRoofs.forEach(r=>{let pts=r.points||[];if(pts.length>3&&Math.hypot(pts[0][0]-pts.at(-1)[0],pts[0][1]-pts.at(-1)[1])<.05)pts=pts.slice(0,-1);for(let i=0;i<pts.length;i++){const a=pts[i],b=pts[(i+1)%pts.length],k=edgeKey(a,b),v=sharedMap.get(k)||{a,b,count:0};v.count++;sharedMap.set(k,v)}});
+ const F=Math.round([...sharedMap.values()].filter(e=>e.count>1).reduce((s,e)=>s+Math.hypot(e.b[0]-e.a[0],e.b[1]-e.a[1]),0)*100)/100;
+ const Nv=(obs.velux5578||0)+(obs.velux114118||0)+(obs.velux||0),Nvent=obs.ventilation||0,colliers=N*Math.ceil(H/2.5),jointsP=Math.round(P/5),fondsF=x.typeToit==='4 pans'?4:x.typeToit==='2 pans'?2:'';
  const specs=[
  ['212.513 — Naissance droite à suspendre DN 100',N,'pce','Ndescentes'],
  ['212.900 — Dilatation dans la naissance à suspendre',N,'pce','Ndescentes'],
