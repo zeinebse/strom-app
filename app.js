@@ -47,7 +47,7 @@ function applyAutoFerblanterie(rows,m,roofCheck){
  // Sur une toiture 4 pans, cette famille représente faîtage + arêtiers.
  // Utiliser le takeoff sauvegardé évite de recalculer les segments avec une
  // tolérance différente de celle du module toiture.
- const F=round(Number(t.faitages)||0);
+ const F=round((Number(t.faitages)||0)+(Number(t.aretiers)||0));
  const Nv=(obs.velux5578||0)+(obs.velux114118||0)+(obs.velux||0),Nvent=obs.ventilation||0,colliers=N*Math.ceil(H/2.5),jointsP=Math.round(P/5),fondsF=x.typeToit==='4 pans'?4:x.typeToit==='2 pans'?2:'';
  const specs=[
  ['212.513 — Naissance droite à suspendre DN 100',N,'pce','Ndescentes'],
