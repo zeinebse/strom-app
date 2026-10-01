@@ -164,12 +164,13 @@ function applyAutoFerblanterie(rows,m,roofCheck){
 }
 function roofTradeBase(p){const t=ferblanterieTakeoffFallback(p),disabled=new Set(p?.roofCheck?.disabledPans||[]),area=Math.round((p?.roofGeometry||[]).filter(r=>!disabled.has(r.index)).reduce((s,r)=>s+(Number(r.area)||0),0)*100)/100,obs=t.obstacles||{},velux=(obs.velux5578||0)+(obs.velux114118||0)+(obs.velux||0),cheminees=(obs.chemineeCarree||0)+(obs.chemineeRonde||0)+(obs.cheminee||0),ventilation=obs.ventilation||0,velux5578=obs.velux5578||0,velux114118=obs.velux114118||0;return{...t,area:area||Number(p?.roofMetrics?.area)||0,perimetre:Number(p?.roofMetrics?.exterior)||0,velux,velux5578,velux114118,cheminees,ventilation}}
 function autoRows(section,specs){const round=n=>Math.round((Number(n)||0)*100)/100;return specs.map(([label,qty,unit])=>({section,label,qty:qty===''?'':String(round(qty)),unit,auto:true,autoSource:''}))}
-function applyAutoSolaire(){const t=roofTradeBase(currentProject);return [
+function pvCalepinageEstimate(project){const disabled=new Set(project?.roofCheck?.disabledPans||[]),roofs=(project?.roofGeometry||[]).filter(r=>!disabled.has(r.index)&&Number(r.area)>0),obsArea=Math.max(0,Number(project?.roofCheck?.obstacleArea)||0),gross=roofs.reduce((s,r)=>s+(Number(r.area)||0),0),usable=Math.max(0,gross-obsArea);/* Default module footprint 1.134 x 1.762 m. Until a module model and exact geometric placement are configured, reserve 20% for edges/circulation/shape losses. */const moduleW=1.134,moduleH=1.762,moduleArea=moduleW*moduleH,fill=.80,n=Math.max(0,Math.floor((usable*fill)/moduleArea));return{count:n,moduleW,moduleH,moduleArea,usable,fill,estimated:true}}
+function applyAutoSolaire(){const t=roofTradeBase(currentProject),pv=pvCalepinageEstimate(currentProject);return [
 {section:'1. Admin / mise en service / support technique',label:'Administration, calepinage, simulation productible, annonces GRD/commune, Pronovo',qty:'1',unit:'bloc',auto:true},
 {section:'1. Admin / mise en service / support technique',label:'Coordination technique avec DT',qty:'1',unit:'bloc',auto:true},
 {section:'1. Admin / mise en service / support technique',label:'Mise en service, IAT, protocoles AC/DC et certification',qty:'1',unit:'bloc',auto:true},
 {section:'1. Admin / mise en service / support technique',label:'Création RCP / décompte et consommation interne',qty:'',unit:'bloc',auto:false},
-{section:'2. Matériel photovoltaïque',label:'Panneaux photovoltaïques',qty:'',unit:'pce',auto:false},
+{section:'2. Matériel photovoltaïque',label:'Panneaux photovoltaïques',qty:String(pv.count),unit:'pce',auto:true,autoSource:`Pré-calepinage automatique · ${pv.moduleW} × ${pv.moduleH} m · ${(pv.fill*100).toFixed(0)} % de remplissage`},
 {section:'2. Matériel photovoltaïque',label:'Onduleur',qty:'1',unit:'pce',auto:true},
 {section:'2. Matériel photovoltaïque',label:'Panneaux factices / raccord au bord de toiture',qty:'1',unit:'bloc',auto:true},
 {section:'3. Système de montage',label:'Système de fixation intégré',qty:'',unit:'pce',auto:false},
