@@ -99,13 +99,6 @@ function applyAutoFerblanterie(rows,m,roofCheck){
  ['362.415 — Joints à glissière faîtage, dev. 670 mm','','pce','Pas de formule fiable issue des devis · à saisir'],
  ['362.900 — Raccord étanche à l’épi',is4?2:0,'pce','2 pour toiture 4 pans · 0 pour toiture 2 pans'],
  ['362.900 — Grille de ventilation faîtage',F*2,'m','F × 2'],
- ['351.113 — Tablettes champ photovoltaïque, dev. 330 mm','','m','T — variante Alpes 61','Ferblanterie — Champ photovoltaïque'],
- ['351.112 — Tablettes champ photovoltaïque, dev. 330 mm','','m','T — variante Pierre-Blanche','Ferblanterie — Champ photovoltaïque'],
- ['351.213 — Bandes d’accrochage champ PV, dev. 250 mm','','m','T — variante Alpes 61','Ferblanterie — Champ photovoltaïque'],
- ['351.213 — Bandes d’accrochage champ PV, dev. 200 mm','','m','T — variante Pierre-Blanche','Ferblanterie — Champ photovoltaïque'],
- ['352.323 — Fonds droits pour tablettes PV, dev. 330 mm','','pce','Selon configuration du champ PV','Ferblanterie — Champ photovoltaïque'],
- ['352.413 — Joints à glissière tablettes PV, dev. 330 mm','','pce','Variante Alpes 61','Ferblanterie — Champ photovoltaïque'],
- ['352.412 — Joints à glissière tablettes PV, dev. 250 mm','','pce','Variante Pierre-Blanche','Ferblanterie — Champ photovoltaïque'],
  ['381.113 — Garniture ronde Ø ≤ 125 mm',Nvent,'pce','Nventilations · système Alpes 61'],
  ['381.332 — Chapeau de nonne + collerette Ø 100 mm',Nvent,'pce','Nventilations · système Alpes 61'],
  ['381.900 — Chapeau biconique + collerette Ø 100 mm','','pce','Option de terminaison'],
@@ -130,9 +123,13 @@ function applyAutoFerblanterie(rows,m,roofCheck){
  ['Tablette perforée de chéneau',t.tablettesChenaux,'m','Même longueur que les chéneaux'],
  ['Couloir simple',t.couloirSimple,'m','Longueur rives + 10 %'],
  ['Plus-value ferblage',t.plusValueFerblage,'pce','Extrémités des lignes d’égout'],
- ['Garniture Velux 114 × 118 cm',Nv114,'pce','Obstacle spécifique existant'],
- ['Garniture Velux 55 × 78 cm',Nv55,'pce','Obstacle spécifique existant'],
- ['Garniture cheminée carrée',Nchem,'pce','Obstacles validés']
+ ['351.113 — Tablettes champ photovoltaïque, dev. 330 mm','','m','T — variante Alpes 61','Ferblanterie — Champ photovoltaïque'],
+ ['351.112 — Tablettes champ photovoltaïque, dev. 330 mm','','m','T — variante Pierre-Blanche','Ferblanterie — Champ photovoltaïque'],
+ ['351.213 — Bandes d’accrochage champ PV, dev. 250 mm','','m','T — variante Alpes 61','Ferblanterie — Champ photovoltaïque'],
+ ['351.213 — Bandes d’accrochage champ PV, dev. 200 mm','','m','T — variante Pierre-Blanche','Ferblanterie — Champ photovoltaïque'],
+ ['352.323 — Fonds droits pour tablettes PV, dev. 330 mm','','pce','Selon configuration du champ PV','Ferblanterie — Champ photovoltaïque'],
+ ['352.413 — Joints à glissière tablettes PV, dev. 330 mm','','pce','Variante Alpes 61','Ferblanterie — Champ photovoltaïque'],
+ ['352.412 — Joints à glissière tablettes PV, dev. 250 mm','','pce','Variante Pierre-Blanche','Ferblanterie — Champ photovoltaïque'],
  ];
  return specs.map(([label,qty,unit,source,section])=>({section:section||'Ferblanterie',label,qty:qty===''?'':String(round(qty)),unit,auto:qty!=='',autoSource:source}))
 }
