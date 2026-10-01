@@ -207,7 +207,7 @@ function applyAutoIsolation(){const t=roofTradeBase(currentProject);return autoR
 ['440.101 — Contre-lattage d’aération 50 × 50 mm sur isolation 121–140 mm',t.area,'m²'],
 ['440.800 — Bandes d’étanchéité autoadhésives sous contre-lattes',t.area,'m²'],
 ['Pose d’un lit de lattage',t.area,'m²'],
-['511.110 — Lattage pour couverture en panneaux solaires, lattes 27 × 50 mm, pureau 450 mm',t.area,'m²'],
+['511.110 — Lattage pour couverture en panneaux solaires, lattes 27 × 50 mm, pureau 450 mm',t.area,'m²','', 'Isolation et sous-couverture — Champ photovoltaïque'],
 ['Chanlatte conique',t.chenaux,'m'],
 ['Pose d’un cornier ventilé',t.faitages,'m'],
 ['Encadrement peint Velux intérieur + plinthe',t.velux,'pce'],
