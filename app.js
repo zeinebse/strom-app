@@ -74,8 +74,8 @@ function applyAutoFerblanterie(rows,m,roofCheck){
  ['312.312 — Angle pour brides, dev. 200 mm',A,'pce','Nangles'],
  ['336.322 — Angle pour larmier, dev. 250 mm',A,'pce','Nangles'],
  ['336.323 — Angle pour larmier, dev. 330 mm',A,'pce','Nangles'],
- ['211.413 — Crochets de chéneau cloués',Math.ceil(P/.58)+(2*A),'pce','CEIL(P ÷ 0,58) + 2 × Nangles'],
- ['211.481 — Supplément crochets engravage bois',Math.ceil(P/.58)+(2*A),'pce','Même quantité que 211.413'],
+ ['211.413 — Crochets de chéneau cloués',Number(t.crochets)||Math.ceil(P/.5),'pce','Σ CEIL(longueur de chaque chéneau ÷ 0,50)'],
+ ['211.481 — Supplément crochets engravage bois',Number(t.crochets)||Math.ceil(P/.5),'pce','Même quantité que 211.413'],
  ['212.312 — Dispositifs de dilatation en caoutchouc',Math.ceil(P/6.5),'pce','CEIL(P ÷ 6,5)'],
  ['336.412 — Joints à glissière larmier, dev. 250 mm',jointsP,'pce','ROUND(P ÷ 5)'],
  ['336.413 — Joints à glissière larmier, dev. 330 mm',jointsP,'pce','ROUND(P ÷ 5)'],
@@ -85,10 +85,10 @@ function applyAutoFerblanterie(rows,m,roofCheck){
  ['362.327 — Fonds droits de faîtage, dev. 670 mm',fondsF,'pce','4 pour 4 pans · 2 pour 2 pans'],
  ['362.415 — Joints à glissière faîtage, dev. 670 mm',Math.ceil(F/2.8),'pce','CEIL(F ÷ 2,8)'],
  ['362.900 — Raccord étanche à l’épi',2,'pce','Quantité fixe 2'],
- ['351.113 — Tablettes champ photovoltaïque, dev. 330 mm','','m','T — périphérie basse et latérale du champ PV'],
- ['351.213 — Bandes d’accrochage champ PV, dev. 250 mm','','m','T — périphérie basse et latérale du champ PV'],
- ['352.323 — Fonds droits pour tablettes, dev. 330 mm',8,'pce','Quantité fixe 8'],
- ['352.413 — Joints à glissière pour tablettes, dev. 330 mm','','pce','ROUND(T ÷ 8,5)'],
+ ['351.113 — Tablettes champ photovoltaïque, dev. 330 mm','','m','T — périphérie basse et latérale du champ PV','Ferblanterie — Champ photovoltaïque'],
+ ['351.213 — Bandes d’accrochage champ PV, dev. 250 mm','','m','T — périphérie basse et latérale du champ PV','Ferblanterie — Champ photovoltaïque'],
+ ['352.323 — Fonds droits pour tablettes, dev. 330 mm',8,'pce','Quantité fixe 8','Ferblanterie — Champ photovoltaïque'],
+ ['352.413 — Joints à glissière pour tablettes, dev. 330 mm','','pce','ROUND(T ÷ 8,5)','Ferblanterie — Champ photovoltaïque'],
  ['100.101 — Fourniture et pose fenêtre de toiture Velux GXU FK06',Nv,'pce','Nvelux'],
  ['100.104 — Tôle de raccord ZWC',Nv,'pce','Nvelux'],
  ['100.107 — Cadre d’isolation BDX 2000',Nv,'pce','Nvelux'],
@@ -109,7 +109,7 @@ function applyAutoFerblanterie(rows,m,roofCheck){
  ['Garniture cheminée carrée',obs.chemineeCarree||obs.cheminee||0,'pce','Obstacles validés'],
  ['Tête de panne / blindage',t.tetesPanne??'','pce','Selon règle chantier']
  ];
- return specs.map(([label,qty,unit,source])=>({section:'Ferblanterie',label,qty:qty===''?'':String(round(qty)),unit,auto:qty!=='',autoSource:source}))
+ return specs.map(([label,qty,unit,source,section])=>({section:section||'Ferblanterie',label,qty:qty===''?'':String(round(qty)),unit,auto:qty!=='',autoSource:source}))
 }
 function roofTradeBase(p){const t=ferblanterieTakeoffFallback(p),disabled=new Set(p?.roofCheck?.disabledPans||[]),area=Math.round((p?.roofGeometry||[]).filter(r=>!disabled.has(r.index)).reduce((s,r)=>s+(Number(r.area)||0),0)*100)/100,obs=t.obstacles||{},velux=(obs.velux5578||0)+(obs.velux114118||0)+(obs.velux||0),cheminees=(obs.chemineeCarree||0)+(obs.chemineeRonde||0)+(obs.cheminee||0),ventilation=obs.ventilation||0,velux5578=obs.velux5578||0,velux114118=obs.velux114118||0;return{...t,area:area||Number(p?.roofMetrics?.area)||0,perimetre:Number(p?.roofMetrics?.exterior)||0,velux,velux5578,velux114118,cheminees,ventilation}}
 function autoRows(section,specs){const round=n=>Math.round((Number(n)||0)*100)/100;return specs.map(([label,qty,unit])=>({section,label,qty:qty===''?'':String(round(qty)),unit,auto:true,autoSource:''}))}
