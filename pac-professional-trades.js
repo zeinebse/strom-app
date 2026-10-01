@@ -68,6 +68,55 @@
     return previousDefaultUnit(label);
   };
 
+  function applyAutoPac() {
+    const specs = [
+      ['1. Admin / mise en service / support technique','Admin · Certification PAC System Module',1,'bloc'],
+      ['1. Admin / mise en service / support technique','Régie · Heures de technicien',1,'bloc'],
+      ['1. Admin / mise en service / support technique','Coordination technique avec DT',1,'bloc'],
+      ['1. Admin / mise en service / support technique','Mise en service du matériel, protocole, test d’étanchéité, réglages de chauffe, test de pression, rapport géologique pour les sondes',1,'bloc'],
+      ['6. Sondes','Relevé géologique',1,'bloc'],
+      ['6. Sondes','Assurance RCMO et Casco des forages géothermiques',1,'bloc'],
+      ['3. PAC et ECA','Divers petits matériels : vidange, manomètre, thermomètre, robinet, raccords, coudes, etc.',1,'bloc'],
+      ['2. Chaudière à mazout','Mise hors service et évacuation de la chaudière mazout',1,'pce'],
+      ['2. Chaudière à mazout','Mise hors service et évacuation de la citerne à mazout',1,'pce'],
+      ['3. PAC et ECA','Fourniture, installation et raccordement PAC saumure-eau',1,'pce'],
+      ['3. PAC et ECA','Fourniture, installation et raccordement chauffe-eau sanitaire',1,'pce'],
+      ['3. PAC et ECA','Fourniture, installation et raccordement accumulateur de chauffage',1,'pce'],
+      ['3. PAC et ECA','Fourniture, installation et raccordement corps de chauffe électrique',1,'pce'],
+      ['4. Circuit secondaire chauffage','Raccordement PAC aux départs des radiateurs',1,'bloc'],
+      ['4. Circuit secondaire chauffage','Groupe de raccordement · vanne mélangeuse, vannes d’arrêt, clapet antiretour, Isobox, pompe de circulation',1,'bloc'],
+      ['4. Circuit secondaire chauffage','Divers petits matériels circuit secondaire',1,'bloc'],
+      ['5. Raccordement électrique et télégestion','Raccordement électrique PAC au tableau électrique',1,'bloc'],
+      ['5. Raccordement électrique et télégestion','Raccordement à l’application web via Wi-Fi ou gateway via carte SIM',1,'bloc'],
+      ['6. Sondes','Forage des sondes · Duplex 40 mm PN16 · injection bentonite ciment · test débit et pression SIA 384-6','', 'm'],
+      ['6. Sondes','Évacuation des boues de forage','', 'm'],
+      ['6. Sondes','Raccordement partie extérieure des sondes et intérieur avec eau glycolée','', 'm'],
+      ['6. Sondes','Collecteurs et distributeurs',1,'bloc'],
+      ['6. Sondes','Remplissage avec propylène glycol 30 %',1,'bloc'],
+      ['6. Sondes','Test de débit et pression par sonde',1,'bloc'],
+      ['6. Sondes','Fouille 80 cm de profondeur et 50 cm de large','', 'm'],
+      ['6. Sondes','Carottages et rhabillages dans l’entrée du bâtiment',1,'bloc'],
+      ['6. Sondes','Isolation des conduites des sondes','', 'm'],
+      ['4. Circuit secondaire chauffage','Isolation des conduites','', 'm²']
+    ];
+    return specs.map(([section,label,qty,unit]) => ({section,label,qty:qty===''?'':String(qty),unit,auto:qty!=='',autoSource:''}));
+  }
+
+  const previousOpenMeasure = openMeasure;
+  openMeasure = function(key) {
+    if (key !== 'pac') return previousOpenMeasure(key);
+    measureTrade = key;
+    const state = currentProject.trades?.[key];
+    const auto = applyAutoPac();
+    const saved = new Map((state?.rows || []).map(r => [`${r.section}||${r.label}`, r]));
+    const data = auto.map(r => ({...r, qtyUnlocked:saved.get(`${r.section}||${r.label}`)?.qtyUnlocked===true}));
+    document.querySelector('#measureTitle').textContent = trades[key].name;
+    document.querySelector('#measureMeta').textContent = currentProject.address;
+    document.querySelector('#measureStatus').textContent = '';
+    renderMeasure(data);
+    show('stromMeasure');
+  };
+
   function makeExternalTradeButton(key) {
     const t = trades[key];
     const d = document.createElement('button');
