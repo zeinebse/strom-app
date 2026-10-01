@@ -102,20 +102,6 @@
     return specs.map(([section,label,qty,unit]) => ({section,label,qty:qty===''?'':String(qty),unit,auto:qty!=='',autoSource:''}));
   }
 
-  const previousOpenMeasure = openMeasure;
-  openMeasure = function(key) {
-    if (key !== 'pac') return previousOpenMeasure(key);
-    measureTrade = key;
-    const state = currentProject.trades?.[key];
-    const auto = applyAutoPac();
-    const saved = new Map((state?.rows || []).map(r => [`${r.section}||${r.label}`, r]));
-    const data = auto.map(r => ({...r, qtyUnlocked:saved.get(`${r.section}||${r.label}`)?.qtyUnlocked===true}));
-    document.querySelector('#measureTitle').textContent = trades[key].name;
-    document.querySelector('#measureMeta').textContent = currentProject.address;
-    document.querySelector('#measureStatus').textContent = '';
-    renderMeasure(data);
-    show('stromMeasure');
-  };
 
   function makeExternalTradeButton(key) {
     const t = trades[key];
@@ -146,4 +132,20 @@
   if (!document.querySelector('#tradeGrid .trade[data-trade-key="pac"]')) {
     document.querySelector('#tradeGrid').appendChild(makeExternalTradeButton('pac'));
   }
+
+  const previousOpenMeasure = openMeasure;
+  openMeasure = function(key) {
+    if (key !== 'pac') return previousOpenMeasure(key);
+    measureTrade = key;
+    const state = currentProject.trades?.[key];
+    const auto = applyAutoPac();
+    const saved = new Map((state?.rows || []).map(r => [`${r.section}||${r.label}`, r]));
+    const data = auto.map(r => ({...r, qtyUnlocked:saved.get(`${r.section}||${r.label}`)?.qtyUnlocked===true}));
+    document.querySelector('#measureTitle').textContent = trades[key].name;
+    document.querySelector('#measureMeta').textContent = currentProject.address;
+    document.querySelector('#measureStatus').textContent = '';
+    renderMeasure(data);
+    show('stromMeasure');
+  };
+
 })();
